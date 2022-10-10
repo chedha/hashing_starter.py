@@ -125,8 +125,9 @@ class Hash_table():
             return self.bucket_list[position]
 
       if not isFound:
-        print("Key not found")
-        return False
+        return "Key not found"
+
+    
 
       
 
@@ -186,7 +187,7 @@ def main():
             sucessful_inserts = sucessful_inserts + 1
     t1 = time.perf_counter_ns() - t0
     
-    print( "elapsed ns = " + str(t1 ))
+    print( "Elapsed insert time = " + str(t1 ))
 
     print("stops_processed = " + str(stops_processed))
     print("sucessful_inserts = " + str(sucessful_inserts))
@@ -194,8 +195,15 @@ def main():
 
     # Your test and debug code here...
     the_hash_table.print_hash_table(20, 25)
-    test_stop = the_hash_table.search_linear("4239")
-    print("test_stop = " + test_stop.val)
+    t0 = time.perf_counter_ns()
+    test_stop = the_hash_table.search_linear("9999")
+    t1 = time.perf_counter_ns() - t0
+    if test_stop == "Key not found":
+      print("Key not found")
+    else:
+      print("test_stop = " + test_stop.val)
+    print( "Elapsed search time = " + str(t1 ))
+    
     
 
 if __name__ == "__main__":
