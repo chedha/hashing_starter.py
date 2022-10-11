@@ -51,11 +51,59 @@ class Hash_table():
     def compute_hash_bucket(self, key_str):
         return int(key_str) % self.n_buckets
 
+    # Quadratic Probe method to resolve collisions
+    def quadraticProbe(self, key_str, position):
+      posFound = False
+
+      limit = 20000
+      i = 1
+
+      while i <= limit:
+        # quadratic probe
+        newPosition = position + i + (i**2)
+        newPosition = newPosition % self.n_buckets
+        # if newPosition is empty then break and return new position
+        if self.bucket_list[newPosition].key == "":
+          posFound = True
+          break
+        else:
+          # increase i if position is not empty
+          i += 1
+      return posFound, newPosition
+
+    def quadraticInsert(self, key_str, val_str):
+      
+      Bucket(key_str, val_str)
+
+      isStored = False
+
+      position = self.compute_hash_bucket(key_str)
+
+      #check to see if position is empty
+
+      if self.bucket_list[position].key == "":
+        self.bucket_list[position] = Bucket(key_str, val_str)
+        isStored = True
+        self.keyCount += 1
+        if self.keyCount == self.n_buckets:
+          return isStored
+
+      #if collision has occured
+      else:
+        self.collisions += 1
+        isStored, position = self.quadraticProbe(key_str, position)
+        if isStored:
+          self.bucket_list[position] = Bucket(key_str, val_str)
+          isStored = True
+          self.keyCount += 1
+          
+      return isStored
+
     # Based on ZyBook, 4.3.4
     # code your own insert method here
     # insert resolving collisions by linear probin
-    def insert(self, key_str, val_str):
-      # checking to see if table is full
+    def linearInsert(self, key_str, val_str):
+      
       Bucket(key_str, val_str)
             
       isStored = False
@@ -71,7 +119,7 @@ class Hash_table():
         if self.keyCount == self.n_buckets:
           return isStored
 
-      #collision has occured
+      #if collision has occured
       
       else:
       #  print(self.keyCount)
@@ -183,7 +231,7 @@ def main():
     
     for this_stop in master_stops_list:
         stops_processed = stops_processed + 1
-        if the_hash_table.insert(this_stop.code, this_stop.name) == True:
+        if the_hash_table.linearInsert(this_stop.code, this_stop.name) == True:
             sucessful_inserts = sucessful_inserts + 1
     t1 = time.perf_counter_ns() - t0
     
@@ -192,12 +240,19 @@ def main():
     print("stops_processed = " + str(stops_processed))
     print("sucessful_inserts = " + str(sucessful_inserts))
     print( "collisions = " + str(the_hash_table.collisions ))
+    print( "Key count = " + str(the_hash_table.keyCount ))
+
+    print()
 
     # Your test and debug code here...
-    the_hash_table.print_hash_table(20, 25)
+    the_hash_table.print_hash_table(20, 10)
+  
+    print()
+  
     t0 = time.perf_counter_ns()
-    test_stop = the_hash_table.search_linear("9999")
+    test_stop = the_hash_table.search_linear("1287")
     t1 = time.perf_counter_ns() - t0
+  
     if test_stop == "Key not found":
       print("Key not found")
     else:
