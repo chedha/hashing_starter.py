@@ -4,6 +4,7 @@ import json
 from collections import namedtuple
 import time
 import sys
+import random
 
 # TABLE_SIZE should be a prime number, see:
 # https://medium.com/swlh/why-should-the-length-of-your-hash-table-be-a-prime-number-760ec65a75d1
@@ -55,12 +56,12 @@ class Hash_table():
     def quadraticProbe(self, key_str, position):
       posFound = False
 
-      limit = 20000
+      limit = 3000
       i = 1
 
       while i <= limit:
         # quadratic probe
-        newPosition = position + i + (i**2)
+        newPosition = position + i + i * (i**2)
         newPosition = newPosition % self.n_buckets
         # if newPosition is empty then break and return new position
         if self.bucket_list[newPosition].key == "":
@@ -98,6 +99,44 @@ class Hash_table():
           self.keyCount += 1
           
       return isStored
+
+    def quadraticSearch(self, key_str):
+      isFound = False
+
+      position = self.compute_hash_bucket(key_str)
+
+      if self.bucket_list[position].key == key_str:
+        return self.bucket_list[position]
+        isFound = True
+
+    # if element is not found at initial hash position
+    # search using quadratic probing
+      else:
+        limit = 5000
+        i = 1
+        newPosition = position
+
+        while (i <= limit):
+          newPosition = position + i + i * (i**2)
+          newPosition = newPosition % self.n_buckets
+
+          if self.bucket_list[newPosition].key == key_str:
+            isFound = True
+            break
+
+          elif self.bucket_list[newPosition].key == "":
+            isFound = False
+
+          else:
+            i += 1
+
+        if isFound:
+          return self.bucket_list[newPosition]
+        else:
+          return "Element not found"
+            
+          
+      
 
     # Based on ZyBook, 4.3.4
     # code your own insert method here
@@ -213,6 +252,7 @@ def main():
     # assuming you are using Lynx stops
     master_stops_list = load_lynx_json('Stops', "stops.json")
     
+    
 
     # create the (initial) hash table
     the_hash_table = Hash_table(TABLE_SIZE)
@@ -228,7 +268,9 @@ def main():
     # get time in nanoseconds -- maybe OS-specific?
     # See https://docs.python.org/3/library/time.html
     t0 = time.perf_counter_ns() 
-    
+
+    #Linear insert testing
+    print("Linear insert performance:")
     for this_stop in master_stops_list:
         stops_processed = stops_processed + 1
         if the_hash_table.linearInsert(this_stop.code, this_stop.name) == True:
@@ -244,20 +286,88 @@ def main():
 
     print()
 
-    # Your test and debug code here...
-    the_hash_table.print_hash_table(20, 10)
+    the_hash_table2 = Hash_table(TABLE_SIZE)
+    sucessful_inserts = 0
+    stops_processed = 0
+   
+    t0 = time.perf_counter_ns()
+    #Quadratic insert testing 
+    print("Quadratic insert performance: ")
+    for this_stop in master_stops_list:
+        stops_processed = stops_processed + 1
+        if the_hash_table2.quadraticInsert(this_stop.code, this_stop.name) == True:
+            sucessful_inserts = sucessful_inserts + 1
+    t1 = time.perf_counter_ns() - t0
+    
+    print( "Elapsed insert time = " + str(t1 ))
+
+    print("stops_processed = " + str(stops_processed))
+    print("sucessful_inserts = " + str(sucessful_inserts))
+    print( "collisions = " + str(the_hash_table2.collisions ))
+    print( "Key count = " + str(the_hash_table2.keyCount ))
+
+
+    # Sample elements in each table
+    # the_hash_table.print_hash_table(20, 10)
+    # print()
+    # the_hash_table2.print_hash_table(20, 10)
   
     print()
-  
+
+    # Linear search testing
+    print("Linear search performance:")
     t0 = time.perf_counter_ns()
-    test_stop = the_hash_table.search_linear("1287")
-    t1 = time.perf_counter_ns() - t0
-  
+    test_stop = the_hash_table.search_linear('1055') 
     if test_stop == "Key not found":
       print("Key not found")
     else:
       print("test_stop = " + test_stop.val)
+    t1 = time.perf_counter_ns() - t0
     print( "Elapsed search time = " + str(t1 ))
+
+    print()
+
+    #Quadratic search testing
+
+    print()
+    print("Quadratic search performance:")
+  
+    t0 = time.perf_counter_ns()
+    test_stop = the_hash_table2.quadraticSearch("7003")
+    if test_stop == "Element not found":
+      print("Element not found")
+    else:
+      print("test_stop = " + test_stop.val)
+    t1 = time.perf_counter_ns() - t0
+    print( "Elapsed search time = " + str(t1 ))
+
+    print()
+    
+    # Dictionary creation of stops and values
+    print("Python search performance:")
+    stops_dict = {}
+    for i in range(len(master_stops_list)):
+      stops_dict[master_stops_list[i].code] = master_stops_list[i].name
+
+    t0 = time.perf_counter_ns()
+    result = stops_dict.get('1287')
+    print(result)
+    t1 = time.perf_counter_ns() - t0
+    print( "Elapsed Python search time = " + str(t1 ))
+
+    times = 0
+    for i in range(5):
+      t0 = time.perf_counter_ns()
+      result = stops_dict.get(str(random.randint(4000,5000)))
+      t1 = time.perf_counter_ns() - t0
+      times += t1
+    averageTime = times / 5
+    print( "Average Python search time = " + str(averageTime))
+    
+    
+    
+    
+    
     
     
 
